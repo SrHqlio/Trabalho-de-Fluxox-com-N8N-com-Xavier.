@@ -1,0 +1,126 @@
+{
+  "name": "Tarefa 3 – Webhook → Gmail (OAuth2)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-email",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2f870b5d-2c37-48a0-95dc-3a69b352fd04",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        432
+      ],
+      "webhookId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-palavra",
+              "name": "palavra",
+              "value": "={{ $json.body.palavra }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e6622679-e868-45a6-8649-8e9299b6912c",
+      "name": "Processar Dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "destino@exemplo.com",
+        "subject": "=Palavra recebida via Webhook: {{ $json.palavra }}",
+        "emailType": "text",
+        "message": "=Olá!\n\nUma nova palavra foi recebida via webhook:\n\n🔤 Palavra: {{ $json.palavra }}\n\nEnviado automaticamente pelo N8N.",
+        "options": {}
+      },
+      "id": "131a4590-031c-496b-831a-76aeb97d7f4b",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        432
+      ],
+      "webhookId": "5c6ed035-aaee-4946-8048-b431ed43d0ce"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { status: 'ok', mensagem: 'E-mail enviado com sucesso!', palavra: $('Processar Dados').item.json.palavra } }}",
+        "options": {}
+      },
+      "id": "7b8f597e-a5ca-4160-a171-e15a99f43234",
+      "name": "Resposta Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        432
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Processar Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Dados": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Resposta Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fdc789e9-652b-4dfe-8cee-722108769b78",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "986d27e4001a95cff0df629d233c78d41909e03eadcc3d3302f01fb47fa55d14"
+  },
+  "id": "hgC52yIfJJFooqBP",
+  "tags": []
+}
