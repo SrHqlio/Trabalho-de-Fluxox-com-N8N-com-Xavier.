@@ -1,0 +1,31 @@
+• Fluxo via Webhook → resposta no browser: explicar o endpoint, o gatilho e a resposta HTTP
+
+    Webhook Trigger --> A webhook recebe um gatilho/evento externo quando o Usuario final ativa a requisição na      URL, com esse gatilho é enviado um "aviso" para o nó de execução. 
+
+    JavaScript Node -->  usando o parâmetro recebido pelo gatilho, filtra o bruto(recebido na Webhook) em apenas nome de usuario dentro de uma mensagem de boas vindas em formato json
+
+    Resposta Síncrona --> Recebe o json reformatado e envia uma mensagem personalizada para o mesmo endereço por uma nova requisição
+
+• Fluxo via Webhook → planilha Excel: demonstrar a entrada de dados e a gravação na planilha
+
+    Webhook --> A webhook receberá um gatilho/evento externo, a entrada de dados, decidida pelo Usuário criador do fluxo, podendo se por mensagens, e-mails, entrada pela URL, etc..., ela mandará esses dados recebidos para o filtro.
+
+    Filtro --> O Filtro analisa esses dados, é usando seus parâmetros pré-definidos, ele decidirá qual planilha o dados devem se postos, se os dados acabarem sendo True, esse parâmetro ira para a gravação do nó da planilha definida como comum, se forem false, esse parâmetro irá para a gravação do nó da planilha definida como incomum.
+
+    Nó planilhas comum --> Os dados vistos como comuns, serão postos numa mensagem comum em formato json e serão enviados para a Webhook.
+
+   Nó planilhas incomuns --> Os dados vistos como incomuns, serão postos numa mensagem incomum em formato json e serão enviados para a Webhook.
+
+   Webhook --> Agora a Webhook receberá a mensagem em json, como output/saída, é envia para o endereço da planilha a mensagem, gravando ela na planilha.
+
+• Fluxo via Webhook → Bot Telegram: adicionar as credenciais do grupo e demonstrar o envio de mensagem
+
+   Webhook --> A Webhook recebe um gatilho/evento externo, sendo o input/entrada, que é o Usuário final mandando as credenciais no telegrama para o fluxo, com esse gatilho ele envia um "aviso" para o Nó "Telegram Mensagem".
+
+   Telegram Mensagem --> Usando o parâmetro recebido pelo gatilho, ele filtrará o que foi recebido pelo WebHook e pegará apenas as credenciais dos alunos, para por numa mensagem prescrita em formato json já posta dentro do nó, a pois isso, enviará a mensagem novamente para o Webhook.
+
+   Webhook --> Agora o Webhook receberá a mensagem em json, como output/saída, é mandará a mensagem para um novo endereço, que será um chat privado, usando uma nova requisição.
+
+
+
+
