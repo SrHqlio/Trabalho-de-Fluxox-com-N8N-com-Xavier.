@@ -1,0 +1,337 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "fluxo-original",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "42a22648-2a51-4f66-81e1-f943859c4664",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -624,
+        128
+      ],
+      "webhookId": "id-do-webhook-gerado-automaticamente"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "efccdd53-7b0b-4ec0-88b2-31d1366ac822",
+      "name": "Processamento de Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        -400,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "COLOQUE_O_ID_DO_CHAT_AQUI",
+        "text": "=Novo registro processado: {{ $json.texto_processado }}",
+        "additionalFields": {}
+      },
+      "id": "a1adc076-7e78-473a-9dfa-fc03ff3ad1da",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        0
+      ],
+      "webhookId": "bd8e31b6-f00d-4243-ba19-be9a925c16b1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "COLOQUE_O_ID_DA_PLANILHA_AQUI",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Página1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Texto Processado": "={{ $json.texto_processado }}",
+            "Data": "={{ $now }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "95e81162-cee3-4818-aaa4-fd35a6f7d042",
+      "name": "Planilha",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "2f1f0899-c357-46b8-889e-94a189f12d85",
+      "name": "Agendamento Automático",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://open.er-api.com/v6/latest/USD",
+        "options": {}
+      },
+      "id": "bc9c7247-91ba-45cc-bd5f-dcab8fb691de",
+      "name": "API Pública (Câmbio)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -368,
+        608
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "seu-email-de-destino@gmail.com",
+        "subject": "=Relatório Diário de Câmbio - {{ $now.format('DD/MM/YYYY') }}",
+        "message": "=Olá!\n\nAqui está o seu relatório diário de taxas de câmbio com base no Dólar (USD):\n\nMoedas:\nReal Brasileiro (BRL): R$ {{ $json.rates.BRL }}\nEuro (EUR): € {{ $json.rates.EUR }}\nLibra (GBP): £ {{ $json.rates.GBP }}\n\nRelatório gerado automaticamente pelo n8n em {{ $now.format('DD/MM/YYYY HH:mm') }}.",
+        "options": {}
+      },
+      "id": "ee9cae8d-8835-4439-b050-0cfceba34d3c",
+      "name": "Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        608
+      ],
+      "webhookId": "db791617-0b52-49d7-9f80-62c557fe6408"
+    },
+    {
+      "parameters": {
+        "path": "triagem-supervisao",
+        "formTitle": "Inscrição para Supervisão Clínica",
+        "formDescription": "Preencha seus dados para solicitar participação no grupo de supervisão.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nome do Profissional"
+            },
+            {
+              "fieldLabel": "Número do CRP"
+            },
+            {
+              "fieldLabel": "Possui experiência prévia em avaliação?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Sim"
+                  },
+                  {
+                    "option": "Não"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ad460037-8471-428c-a57e-1413a8d795d0",
+      "name": "Formulário Web",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        1024
+      ],
+      "webhookId": "16124b48-cb88-4c97-8eb1-16505a769052"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.experiencia }}",
+              "rightValue": "Sim",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "50223a1b-23be-4838-bda8-a99e46b0a2b9",
+      "name": "Filtragem (Com Experiência)",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toCsv"
+      },
+      "id": "f29aedf5-1561-4af6-93e9-b14365bd4269",
+      "name": "Converter para Arquivo",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $binary.data.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "id": "219e6c07-97a2-41e5-824a-5c223f6d6654",
+      "name": "Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        560,
+        1024
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Processamento de Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processamento de Texto": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agendamento Automático": {
+      "main": [
+        [
+          {
+            "node": "API Pública (Câmbio)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API Pública (Câmbio)": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulário Web": {
+      "main": [
+        [
+          {
+            "node": "Filtragem (Com Experiência)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtragem (Com Experiência)": {
+      "main": [
+        [
+          {
+            "node": "Converter para Arquivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Converter para Arquivo": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "eec45b5a-ea2e-4af2-8b68-5f560032c871",
+  "meta": {
+    "instanceId": "986d27e4001a95cff0df629d233c78d41909e03eadcc3d3302f01fb47fa55d14"
+  },
+  "id": "kREkd6I6lAKrAy2L",
+  "tags": []
+}
