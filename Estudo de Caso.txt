@@ -1,0 +1,15 @@
+Estudo de Caso: Workflow de Captura de Leads com N8N
+
+Uma empresa SaaS B2B automatizou todo o processo de recebimento de leads via formulário web usando N8N, em 5 etapas encadeadas:
+
+1. Webhook — recebe o formulário (nome, e-mail, segmento) e mantém a conexão aberta até tudo ser processado
+
+2. Validação (Function + IF) — normaliza os dados via JavaScript e descarta leads inválidos com erro 400 antes de salvar qualquer coisa
+
+3. Google Sheets — grava o lead numa planilha usada como CRM temporário pelo time comercial
+
+4. Notificações em paralelo — dispara simultaneamente um e-mail para o gerente de vendas e uma mensagem no canal #leads do Slack
+
+5. Resposta HTTP 200 — só depois de tudo concluído, devolve sucesso ao formulário com o ID único do lead
+
+O resultado é um pipeline completo que roda em menos de 2 segundos, sem servidores extras, onde cada etapa tem uma responsabilidade única e pode ser trocada de forma independente (ex: substituir o Sheets por um CRM real ou adicionar enriquecimento de dados).
