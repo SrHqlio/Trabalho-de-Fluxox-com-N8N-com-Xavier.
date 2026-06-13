@@ -1,0 +1,396 @@
+{
+  "name": "Meu fluxo de trabalho",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      texto: \"Estou muito triste e com raiva hoje!\",\n      email_destino: \"n4731317@gmail.com\",\n      timestamp: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "id": "34d47adc-4db6-47f7-8eb3-e847073ab901",
+      "name": "Validar e preparar carga útil",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um classificador de sentimentos. Analise o texto fornecido e responda APENAS com uma dessas palavras: POSITIVO, NEGATIVO ou NEUTRO. Não adicione nenhuma outra palavra ou pontuação."
+            },
+            {
+              "content": "={{ $json.texto }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "c9baf1c4-2e6c-4fe6-a0df-263aa0ecccb4",
+      "name": "OpenAI - Classificar Sentimento",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -704,
+        288
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Analisa e normaliza a resposta da OpenAI\nconst inputData = $input.first().json;\n\n// Tenta extrair o sentimento da resposta da OpenAI\nlet sentimento = '';\n\n// Resposta pode vir em diferentes formatos dependendo da versão do nó\nif (inputData.message && inputData.message.content) {\n  sentimento = inputData.message.content.trim().toUpperCase();\n} else if (inputData.choices && inputData.choices[0]) {\n  sentimento = (inputData.choices[0].message?.content || inputData.choices[0].text || '').trim().toUpperCase();\n} else if (typeof inputData.text === 'string') {\n  sentimento = inputData.text.trim().toUpperCase();\n} else {\n  // Fallback: converte o objeto para string e tenta extrair\n  const raw = JSON.stringify(inputData);\n  if (raw.includes('POSITIVO')) sentimento = 'POSITIVO';\n  else if (raw.includes('NEGATIVO')) sentimento = 'NEGATIVO';\n  else sentimento = 'NEUTRO';\n}\n\n// Normaliza para garantir um dos três valores esperados\nif (!['POSITIVO', 'NEGATIVO', 'NEUTRO'].includes(sentimento)) {\n  if (sentimento.includes('POSITIV')) sentimento = 'POSITIVO';\n  else if (sentimento.includes('NEGATIV')) sentimento = 'NEGATIVO';\n  else sentimento = 'NEUTRO';\n}\n\n// Recupera o texto e email originais\nconst texto = $('Validar e preparar carga útil').first().json.texto;\nconst email_destino = $('Validar e preparar carga útil').first().json.email_destino;\n\nreturn [{\n  json: {\n    sentimento: sentimento,\n    texto: texto,\n    email_destino: email_destino,\n    is_positivo: sentimento === 'POSITIVO',\n    is_negativo: sentimento === 'NEGATIVO',\n    is_neutro: sentimento === 'NEUTRO'\n  }\n}];"
+      },
+      "id": "d4b484ec-9679-4395-be93-24fd28444423",
+      "name": "Analisar Resultado OpenAI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-positivo",
+              "leftValue": "={{ $json.sentimento }}",
+              "rightValue": "POSITIVO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "f545dad2-00c8-4056-835f-a3bb14448b5c",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0ca31de0-70a0-4334-84ef-c662aff7f85a",
+      "name": "É POSITIVO?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "cond-negativo",
+              "leftValue": "={{ $json.sentimento }}",
+              "rightValue": "NEGATIVO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "58b94da5-6613-4e95-946c-755acafb918e",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd1ad20e-8d0c-44ed-a714-f22603feaaad",
+      "name": "É NEGATIVO?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email_destino }}",
+        "subject": "✅ Análise de Sentimento: POSITIVO",
+        "message": "=O texto enviado foi classificado como POSITIVO.\n\nTexto analisado: {{ $('Analisar Resultado OpenAI').first().json.texto }}\n\nSentimento: {{ $('Analisar Resultado OpenAI').first().json.sentimento }}\n\nAnalisado em: {{ new Date().toISOString() }}",
+        "options": {}
+      },
+      "id": "d8d0e26d-58fb-4234-91f1-0942a731e737",
+      "name": "E-mail - Sentimento POSITIVO",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        0
+      ],
+      "webhookId": "5e5db298-3be4-42a4-a871-8dc0dc32ff63",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gQrbuCukzxKUrv7i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email_destino }}",
+        "subject": "❌ Análise de Sentimento: NEGATIVO",
+        "message": "=<h2 style=\"color:#ef4444\">😞 Sentimento Negativo Detectado</h2><p><strong>Texto analisado:</strong></p><blockquote style=\"border-left:4px solid #ef4444;padding:10px;background:#fef2f2\">{{ $json.texto }}</blockquote><p><strong>Resultado:</strong> <span style=\"color:#ef4444;font-weight:bold\">NEGATIVO</span></p><hr><small>Analisado em {{ $json.timestamp || new Date().toISOString() }}</small>",
+        "options": {}
+      },
+      "id": "0c5dae80-ecc0-43ed-a6b5-15f60286d60d",
+      "name": "E-mail - Sentimento NEGATIVO",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        192
+      ],
+      "webhookId": "f3d00add-2ac2-41b9-99f1-24a371a548e9",
+      "executeOnce": false,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email_destino }}",
+        "subject": "➖ Análise de Sentimento: NEUTRO",
+        "message": "=<h2 style=\"color:#f59e0b\">😐 Sentimento Neutro Detectado</h2><p><strong>Texto analisado:</strong></p><blockquote style=\"border-left:4px solid #f59e0b;padding:10px;background:#fffbeb\">{{ $json.texto }}</blockquote><p><strong>Resultado:</strong> <span style=\"color:#f59e0b;font-weight:bold\">NEUTRO</span></p><hr><small>Analisado em {{ $json.timestamp || new Date().toISOString() }}</small>",
+        "options": {}
+      },
+      "id": "c1c5873a-2ed9-431f-9b3a-15777ed79c1e",
+      "name": "Email - Sentimento NEUTRO",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        384
+      ],
+      "webhookId": "a787fd5f-424f-4f6a-a7dd-7117f959b612",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gQrbuCukzxKUrv7i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "n4731317@gmail.com",
+        "subject": "Análise de sentimentos",
+        "emailType": "text",
+        "message": "=O texto enviado foi classificado como NEGATIVO.\n\nTexto analisado: {{ $('Analisar Resultado OpenAI').first().json.texto }}\n\nSentimento: {{ $('Analisar Resultado OpenAI').first().json.sentimento }}\n\nAnalisado em: {{ new Date().toISOString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        528,
+        192
+      ],
+      "id": "15944806-2162-4acd-9c90-124b0ac0b819",
+      "name": "Send a message",
+      "webhookId": "85b20e7b-8f83-4d9c-a5ed-4afb406c9010",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gQrbuCukzxKUrv7i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        432
+      ],
+      "id": "b9b144c5-123c-41d0-a8fb-10b1195ff7d6",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1216,
+        288
+      ],
+      "id": "cc9a781f-844a-4002-a7ea-d5929367ec67",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Validar e preparar carga útil": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Classificar Sentimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Classificar Sentimento": {
+      "main": [
+        [
+          {
+            "node": "Analisar Resultado OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Analisar Resultado OpenAI": {
+      "main": [
+        [
+          {
+            "node": "É POSITIVO?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "É NEGATIVO?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É POSITIVO?": {
+      "main": [
+        [
+          {
+            "node": "E-mail - Sentimento POSITIVO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "É NEGATIVO?": {
+      "main": [
+        [
+          {
+            "node": "E-mail - Sentimento NEGATIVO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email - Sentimento NEUTRO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-mail - Sentimento POSITIVO": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E-mail - Sentimento NEGATIVO": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Sentimento NEUTRO": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Validar e preparar carga útil",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a5cc06bd-733d-4e8e-9e43-d855787ea43b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0eea2c1f1a5c6c296ceecee885440b7ff303954e16e09d0a1516f44536ce9320"
+  },
+  "nodeGroups": [],
+  "id": "3isWB7KOKX5XeSAo",
+  "tags": []
+}
